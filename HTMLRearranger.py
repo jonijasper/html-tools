@@ -18,6 +18,10 @@ class HTMLRearranger(HTMLParser):
         self.newline = True
         self.open = False
 
+    @staticmethod
+    def warning(msg: str, level: str = "INFO"):
+        print(f"*** {level}: {msg}", file=sys.stderr)
+
     def __path_checker(self, filename: str) -> str:
         dirpath = Path(self.SAVEPATH)
         if not dirpath.exists():
@@ -25,7 +29,7 @@ class HTMLRearranger(HTMLParser):
 
         if '.' not in filename:
             filename = filename + ".html"
-            print(f"*** INFO: File format missing, saving as html-file.", file=sys.stderr)
+            self.warning("File format missing, saving as html-file.")
             
         filepath = Path(self.SAVEPATH + filename)
         i = 1
@@ -36,10 +40,9 @@ class HTMLRearranger(HTMLParser):
             i+=1
 
         if i > self.MAXFILES:
-            print(f"*** WARNING: Overwriting file: {filepath}", file=sys.stderr)
+            self.warning(f"Overwriting file: {filepath}", "WARNING")
    
         return filepath
-
 
     def __createfile(self):
         with open(self.filepath, 'w') as f:
@@ -47,7 +50,8 @@ class HTMLRearranger(HTMLParser):
 
     def __writeline(self, content: str):
         if self.indlvl < 0:
-            raise IndentationError(content)
+            pos = self.getpos()[0]
+            raise IndentationError(f"{content}, line {pos}")
 
         with open(self.filepath, 'a') as f:
             if self.newline:
@@ -73,7 +77,8 @@ class HTMLRearranger(HTMLParser):
             if self.indlvl > 0:
                 self.indlvl -= 1
             else:
-                print(f"*** INFO: </{tag}> indentation weirdness.", file=sys.stderr)
+                pos = self.getpos()[0]
+                self.warning(f"</{tag}> indentation weirdness, line {pos}")
         
         self.__writeline(f"</{tag}>")
         self.newline = True
@@ -118,4 +123,4 @@ if __name__ == "__main__":
     
     parser.feed(html_doc)
     parser.close()
-    print('\N{goat}')
+    print('*** \N{goat}')
