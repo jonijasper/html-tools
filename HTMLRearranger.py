@@ -1,3 +1,5 @@
+import sys
+
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -9,30 +11,37 @@ class HTMLRearranger(HTMLParser):
 
     def __init__(self, filename: str = "newdoc.html"):
         HTMLParser.__init__(self)
-
-        dirpath = Path(f"{self.SAVEPATH}")
-        if not dirpath.exists():
-            raise FileNotFoundError(self.SAVEPATH)
-
-
-        filepath = Path(f"{self.SAVEPATH}{filename}")
-        i = 1
-        foo = filename.split(".")
-        while filepath.is_file() and i <= self.MAXFILES:
-            newname = f"({i}).".join(foo)
-            filepath = Path(f"{self.SAVEPATH}{newname}")
-            i+=1
-
-        if i > self.MAXFILES:
-            raise FileExistsError(filename)
         
-        self.filepath = filepath
-        self.__openfile()
+        self.filepath = self.__path_checker(filename)
+        self.__createfile()
         self.indlvl = 0
         self.newline = True
         self.open = False
 
-    def __openfile(self):
+    def __path_checker(self, filename: str) -> str:
+        dirpath = Path(self.SAVEPATH)
+        if not dirpath.exists():
+            raise FileNotFoundError(self.SAVEPATH)
+
+        if '.' not in filename:
+            filename = filename + ".html"
+            print(f"*** INFO: File format missing, saving as html-file.", file=sys.stderr)
+            
+        filepath = Path(self.SAVEPATH + filename)
+        i = 1
+        foo = filename.split(".")
+        while filepath.is_file() and i <= self.MAXFILES:
+            newname = f"({i}).".join(foo)
+            filepath = Path(self.SAVEPATH + newname)
+            i+=1
+
+        if i > self.MAXFILES:
+            print(f"*** WARNING: Overwriting file: {filepath}", file=sys.stderr)
+   
+        return filepath
+
+
+    def __createfile(self):
         with open(self.filepath, 'w') as f:
             f.write("<!DOCTYPE html>\n")
 
@@ -61,7 +70,10 @@ class HTMLRearranger(HTMLParser):
         if not self.open:
             self.newline = True
         if self.newline:
-            self.indlvl -= 1
+            if self.indlvl > 0:
+                self.indlvl -= 1
+            else:
+                print(f"*** INFO: </{tag}> indentation weirdness.", file=sys.stderr)
         
         self.__writeline(f"</{tag}>")
         self.newline = True
@@ -106,3 +118,4 @@ if __name__ == "__main__":
     
     parser.feed(html_doc)
     parser.close()
+    print('\N{goat}')
