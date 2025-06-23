@@ -23,8 +23,9 @@ class HTMLRearranger(HTMLParser):
         print(f"*** {level}: {msg}", file=sys.stderr)
 
     def __path_checker(self, filename: str) -> str:
-        dirpath = Path(self.SAVEPATH)
-        if not dirpath.exists():
+        if Path(self.SAVEPATH).exists():
+            self.warning(f"Saving new file to {self.SAVEPATH}")
+        else:
             raise FileNotFoundError(self.SAVEPATH)
 
         if '.' not in filename:
