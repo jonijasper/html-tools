@@ -28,21 +28,28 @@ class HTMLRearranger(HTMLParser):
         print(f"*** {level}: {msg}", file=stream)
 
     def __path_checker(self, filename: str) -> str:
-        if Path(self.SAVEPATH).exists():
-            self.warning(f"Saving new file to {self.SAVEPATH}")
+        if '/' in filename:
+            bar = filename.split('/')
+            savepath = "/".join(bar[:-1]) + "/"
+            filename = bar[-1]
         else:
-            raise FileNotFoundError(self.SAVEPATH)
+            savepath = self.SAVEPATH
+
+        if Path(savepath).exists():
+            self.warning(f"Saving new file to {savepath}")
+        else:
+            raise FileNotFoundError(f"Directory not found: {savepath}")
 
         if '.' not in filename:
             filename = filename + ".html"
             self.warning("File format missing, saving as html-file.")
             
-        filepath = Path(self.SAVEPATH + filename)
+        filepath = Path(savepath + filename)
         i = 1
         foo = filename.split(".")
         while filepath.is_file() and i <= self.MAXFILES:
             newname = f"({i}).".join(foo)
-            filepath = Path(self.SAVEPATH + newname)
+            filepath = Path(savepath + newname)
             i+=1
 
         if i > self.MAXFILES:
@@ -121,6 +128,7 @@ class HTMLRearranger(HTMLParser):
 
 if __name__ == "__main__":
     testdoc = "./tests/html_test_doc.html"
+    # newfile = "./pretty.html"
     newfile = "pretty.html"
 
     parser = HTMLRearranger(newfile)
