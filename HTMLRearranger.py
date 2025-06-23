@@ -20,7 +20,12 @@ class HTMLRearranger(HTMLParser):
 
     @staticmethod
     def warning(msg: str, level: str = "INFO"):
-        print(f"*** {level}: {msg}", file=sys.stderr)
+        if level == "INFO":
+            stream = sys.stdout
+        else:
+            stream = sys.stderr
+
+        print(f"*** {level}: {msg}", file=stream)
 
     def __path_checker(self, filename: str) -> str:
         if Path(self.SAVEPATH).exists():
