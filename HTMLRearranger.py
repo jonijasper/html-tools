@@ -78,7 +78,7 @@ class HTMLRearranger(HTMLParser):
         if tag in self.voidtags:
             self.handle_startendtag(tag, attrs)
             return
-            
+
         self.newline = True
         if self.open:
             self.indlvl += 1
@@ -112,19 +112,20 @@ class HTMLRearranger(HTMLParser):
         self.open = False
         
     def handle_data(self, data):
+        cleandata = []
         datalines = data.split("\n")
-        if "" in datalines:
-            datalines.remove("")
+        for line in datalines:
+            if line.strip() != "":
+                cleandata.append(line)
 
-        if datalines:
-            if len(datalines) <= 1:
+        if cleandata:
+            if len(cleandata) == 1:
                 self.newline = False
-                self.__writeline(datalines[0])
+                self.__writeline(cleandata[0])
             else:
                 self.newline = True
-                for line in datalines:
-                    if line:
-                        self.__writeline(line)
+                for line in cleandata:
+                    self.__writeline(line)
 
     def handle_comment(self, data):
         self.newline = True
