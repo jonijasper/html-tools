@@ -9,9 +9,10 @@ class HTMLRearranger(HTMLParser):
     TAB = 2         # indentation size = " " * TAB
     SAVEPATH = "./tests/"
 
-    def __init__(self, filename: str = "newdoc.html"):
+    def __init__(self, filename: str = "newdoc.html", voidtags: set = {}):
         HTMLParser.__init__(self)
         
+        self.voidtags = voidtags
         self.filepath = self.__path_checker(filename)
         self.__createfile()
         self.indlvl = 0
@@ -74,6 +75,10 @@ class HTMLRearranger(HTMLParser):
                 f.write(content)
 
     def handle_starttag(self, tag, attrs):
+        if tag in self.voidtags:
+            self.handle_startendtag(tag, attrs)
+            return
+            
         self.newline = True
         if self.open:
             self.indlvl += 1
