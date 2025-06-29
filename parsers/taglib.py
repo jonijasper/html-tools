@@ -34,16 +34,4 @@ class TagLib(HTMLParser):
 
 
 if __name__ == "__main__":
-    testdoc = "./tests/html_test_doc.html"
-    
-    with open(testdoc,'r') as f:
-        html_str = f.read()
-
-    foo = TagLib()
-    foo.feed(html_str)
-    voids = foo.get_voidlist()
-    foo.close()
-
-    print(voids)
-    
-    print('*** \N{goat}')
+    print('*** \N{goat} Try running: main.py --help')

@@ -133,13 +133,4 @@ class HTMLCleaner(HTMLParser):
 
 
 if __name__ == "__main__":
-    testdoc = "./tests/html_test_doc.html"
-    newfile = "pretty.html"
-
-    parser = HTMLRearranger(newfile)
-    with open(testdoc,'r') as f:
-        html_doc = f.read()
-    
-    parser.feed(html_doc)
-    parser.close()
-    print('*** \N{goat}')
+    print('*** \N{goat} Try running: main.py --help')

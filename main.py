@@ -15,8 +15,8 @@ main.py -f "./inputfile.html" -o "./outputfile.html"
 """
 
 import sys
-from html_cleaner import HTMLCleaner
-from taglib import TagLib
+from parsers.html_cleaner import HTMLCleaner
+from parsers.taglib import TagLib
 
 
 def argparser(*args) -> list:
