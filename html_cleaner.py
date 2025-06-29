@@ -4,10 +4,10 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 
-class HTMLRearranger(HTMLParser):
+class HTMLCleaner(HTMLParser):
     MAXFILES = 5    # try filename(n) replacement up to n=MAXFILES
     TAB = 2         # indentation size = " " * TAB
-    SAVEPATH = "./tests/"
+    SAVEPATH = "./"
 
     def __init__(self, filename: str = "newdoc.html", voidtags: set = {}):
         HTMLParser.__init__(self)
@@ -134,7 +134,6 @@ class HTMLRearranger(HTMLParser):
 
 if __name__ == "__main__":
     testdoc = "./tests/html_test_doc.html"
-    # newfile = "./pretty.html"
     newfile = "pretty.html"
 
     parser = HTMLRearranger(newfile)

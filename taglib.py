@@ -24,24 +24,26 @@ class TagLib(HTMLParser):
     def handle_startendtag(self, tag, attrs):
         self.voidtags.append(tag)
 
-    def get_voidtags(self):
+    def get_voidlist(self) -> list:
         if self.weird:
             print(f"Found end tags without start tag:")
             for tag,pos in self.weird:
                 print(f"</{tag}>, line {pos}")
 
-        return set(self.voidtags)
+        return self.voidtags
 
 
 if __name__ == "__main__":
     testdoc = "./tests/html_test_doc.html"
     
     with open(testdoc,'r') as f:
-        html_doc = f.read()
+        html_str = f.read()
 
     foo = TagLib()
-    foo.feed(html_doc)
-    print(f"{foo.get_voidtags()=}")
+    foo.feed(html_str)
+    voids = foo.get_voidlist()
     foo.close()
+
+    print(voids)
     
     print('*** \N{goat}')
