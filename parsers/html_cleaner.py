@@ -1,7 +1,8 @@
 import sys
-
 from html.parser import HTMLParser
 from pathlib import Path
+
+from parsers.taglib import TagLib
 
 
 class HTMLCleaner(HTMLParser):
@@ -9,24 +10,17 @@ class HTMLCleaner(HTMLParser):
     TAB = 2         # indentation size = " " * TAB
     SAVEPATH = "./"
 
-    def __init__(self, filename: str = "newdoc.html", voidtags: set = {}):
+    def __init__(self, filename: str = "clean.html"):
         HTMLParser.__init__(self)
         
-        self.voidtags = voidtags
         self.filepath = self.__path_checker(filename)
-        self.__createfile()
+        self.voidtags = {}
         self.indlvl = 0
-        self.newline = True
+        self.script = False
         self.open = False
+        self.newline = True
 
-    @staticmethod
-    def warning(msg: str, level: str = "INFO"):
-        if level == "INFO":
-            stream = sys.stdout
-        else:
-            stream = sys.stderr
-
-        print(f"*** {level}: {msg}", file=stream)
+        self.__createfile()
 
     def __path_checker(self, filename: str) -> str:
         if '/' in filename:
@@ -36,9 +30,7 @@ class HTMLCleaner(HTMLParser):
         else:
             savepath = self.SAVEPATH
 
-        if Path(savepath).exists():
-            self.warning(f"Saving new file to {savepath}")
-        else:
+        if not Path(savepath).exists():
             raise FileNotFoundError(f"Directory not found: {savepath}")
 
         if '.' not in filename:
@@ -55,6 +47,8 @@ class HTMLCleaner(HTMLParser):
 
         if i > self.MAXFILES:
             self.warning(f"Overwriting file: {filepath}", "WARNING")
+        else:
+            self.warning(f"Saving new file as {filepath}")
    
         return filepath
 
@@ -74,63 +68,96 @@ class HTMLCleaner(HTMLParser):
             else:
                 f.write(content)
 
+    def __strip_attrs(self, attrs) -> str:
+        attrlist = []
+        for attr,value in attrs:
+            if value:
+                values = value.split()
+                attrlist.append(f" {attr}=\"{" ".join(values)}\"")
+            else:
+                attrlist.append(f" {attr}=\"\"")
+
+        return "".join(attrlist)
+
+    def fill_the_void(self, content):
+        """ run before feed() """
+        voidparser = TagLib()
+        voidparser.feed(content)
+        tags = voidparser.get_voidlist()
+        voidparser.close()
+
+        self.voidtags = set(tags)
+
+    # <tag>
     def handle_starttag(self, tag, attrs):
+        if tag == "script":
+            self.script = True
+
         if tag in self.voidtags:
             self.handle_startendtag(tag, attrs)
-            return
+        else:
+            attrstr = self.__strip_attrs(attrs)
+
+            self.newline = True
+            self.__writeline(f"<{tag}{attrstr}>")
+            self.newline = False
+            self.indlvl += 1
+            self.open = True
+
+    # <tag/>
+    def handle_startendtag(self, tag, attrs):
+        attrstr = self.__strip_attrs(attrs)
 
         self.newline = True
-        if self.open:
-            self.indlvl += 1
+        self.__writeline(f"<{tag}{attrstr} />")
+        self.open = False
 
-        attrstr = [f" {attr}=\"{value}\"" for attr,value in attrs]
-        self.__writeline(f"<{tag}{"".join(attrstr)}>")
-        
-        self.open = True
+    # > data </
+    def handle_data(self, data):
+        cleandata = []
+        datalines = data.splitlines()
+        for line in datalines:
+            content = line.strip()
+            if content:
+                cleandata.append(line if self.script else content)
 
-    def handle_endtag(self, tag):
-        if not self.open:
+        if cleandata:
             self.newline = True
-        if self.newline:
-            if self.indlvl > 0:
-                self.indlvl -= 1
-            else:
-                pos = self.getpos()[0]
-                self.warning(f"</{tag}> indentation weirdness, line {pos}")
+            for line in cleandata:
+                self.__writeline(line)
+
+    # </tag>
+    def handle_endtag(self, tag):
+        if tag == "script":
+            self.script = False
+
+        if tag in self.voidtags:
+            return
+
+        if self.indlvl > 0:
+            self.indlvl -= 1
+        else:
+            pos = self.getpos()[0]
+            self.warning(f"</{tag}> indentation weirdness, line {pos}")
         
         self.__writeline(f"</{tag}>")
         self.newline = True
         self.open = False
 
-    def handle_startendtag(self, tag, attrs):
-        self.newline = True
-        if self.open:
-            self.indlvl += 1
-
-        attrstr = [f" {attr}=\"{value}\"" for attr,value in attrs]
-        self.__writeline(f"<{tag}{"".join(attrstr)} />")
-        self.open = False
-        
-    def handle_data(self, data):
-        cleandata = []
-        datalines = data.split("\n")
-        for line in datalines:
-            if line.strip() != "":
-                cleandata.append(line)
-
-        if cleandata:
-            if len(cleandata) == 1:
-                self.newline = False
-                self.__writeline(cleandata[0])
-            else:
-                self.newline = True
-                for line in cleandata:
-                    self.__writeline(line)
-
+    # <!--comment-->
     def handle_comment(self, data):
         self.newline = True
         self.__writeline(f"<!--{data}-->")
 
+    @staticmethod
+    def warning(msg: str, level: str = "INFO"):
+        if level == "INFO":
+            stream = sys.stdout
+        else:
+            stream = sys.stderr
+
+        print(f"*** {level}: {msg}", file=stream)
+
 
 if __name__ == "__main__":
-    print('*** \N{goat} Try running: main.py --help')
+    print('*** \N{goat} Try running: cleaner.py --help')

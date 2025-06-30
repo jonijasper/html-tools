@@ -1,12 +1,12 @@
 """ Parse and clean up html code 
 
 run demo:
-main.py --demo
+cleaner.py --demo
 or
-main.py -f "./demo/sourceA.html"
+cleaner.py -f "./demo/sourceA.html"
 
 run program:
-main.py -f "./inputfile.html" -o "./outputfile.html"
+cleaner.py -f "./inputfile.html" -o "./outputfile.html"
 
 -f: relative path to input file
 -o: relative path to output file (optional)
@@ -15,24 +15,7 @@ main.py -f "./inputfile.html" -o "./outputfile.html"
 """
 
 from parsers.html_cleaner import HTMLCleaner
-from parsers.taglib import TagLib
 
-
-def cleanup(html_doc: str, newname: str = ""):
-    with open(html_doc, 'r') as f:
-            html_str = f.read()
-
-    voidparser = TagLib()
-    voidparser.feed(html_str)
-    tags = voidparser.get_voidlist()
-    voidparser.close()
-
-    if not newname:
-        newname = "new_" + html_doc.split('/')[-1]
-
-    cleaner = HTMLCleaner(newname, tags)
-    cleaner.feed(html_str)
-    cleaner.close()
 
 def _argparser(*args) -> list:
     argdict = {"-f": None, "-o": None}
@@ -57,6 +40,23 @@ def _demo():
     cleanup(*demoB)
 
 
+def cleanup(html_doc: str, newname: str = ""):
+    """
+    html_doc: path to html document
+    newname: (optional) path to new file
+    """
+    if not newname:
+        newname = "new_" + html_doc.split('/')[-1]
+
+    with open(html_doc, 'r') as f:
+        html_str = f.read()
+
+    cleaner = HTMLCleaner(newname)
+    cleaner.fill_the_void(html_str)
+    cleaner.feed(html_str)
+    cleaner.close()
+
+
 if __name__ == "__main__":
     import sys
 
@@ -64,6 +64,6 @@ if __name__ == "__main__":
     if args[0]:
         cleanup(*args)
     else:
-        print("No input file. Try running: main.py --help")
+        print("No input file. Try running: cleaner.py --help")
 
     print(f"\N{goat}")

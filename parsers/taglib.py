@@ -34,4 +34,4 @@ class TagLib(HTMLParser):
 
 
 if __name__ == "__main__":
-    print('*** \N{goat} Try running: main.py --help')
+    print('*** \N{goat} Try running: cleaner.py --help')
