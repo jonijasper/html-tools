@@ -1,19 +1,21 @@
-""" Parse and clean up html code 
+#!/usr/bin/env python3
 
-run demo:
-cleaner.py --demo
-or
-cleaner.py -f "./demo/sourceA.html"
+# cleaner.py
+# v0.1
+""" 
+Parse and clean up html code 
 
-run program:
-cleaner.py -f "./inputfile.html" -o "./outputfile.html"
+Usage:
+    python3 cleaner.py -f [inputfile] -o [outputfile]
 
 -f: relative path to input file
 -o: relative path to output file (optional)
     if no output is specified, the new file is created in running directory
     as "new_inputfilename.html"
-"""
 
+Demo:
+    python3 cleaner.py --demo
+"""
 from parsers.html_cleaner import HTMLCleaner
 
 
